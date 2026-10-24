@@ -1,21 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { GoogleGenAI } from '@google/genai';
-import { apiKey } from 'config/apiExportConfig';
-import { normalizedImage } from 'src/imageSharping/image.sharp';
+import { normalizedImage } from 'src/image-processing/normalized-image';
+import {
+  FoodIdentification,
+  IdentifiedFood,
+} from './dto/food-identification.dto';
+
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(Math.max(value, min), max);
+
+const MAX_GRAMS = 2000;
 
 @Injectable()
-export class ApiPruebaService {
+export class FoodRecognitionService {
+  private readonly logger = new Logger(FoodRecognitionService.name);
   private readonly ai: GoogleGenAI;
+  private readonly model: string;
 
-  constructor() {
+  constructor(private readonly configService: ConfigService) {
     this.ai = new GoogleGenAI({
-      apiKey,
+      apiKey: this.configService.getOrThrow<string>('GEMINI_API'),
     });
+    this.model = this.configService.get<string>(
+      'GEMINI_MODEL',
+      'gemini-3.5-flash-lite',
+    );
   }
 
-  async estimateFood(imageBuffer: Buffer, mimeType: string) {
-    const normalized = await normalizedImage(imageBuffer);
-    const imageBase64 = normalized.toString('base64');
+  async identifyFoods(imageBuffer: Buffer): Promise<FoodIdentification> {
+    const imageBase64 = (await normalizedImage(imageBuffer)).toString('base64');
 
     const systemInstruction = `
       Eres un nutricionista experto y un sistema de visión artificial especializado en análisis de platos de comida.
@@ -51,14 +65,15 @@ entre 0 y 1. No incluyas platos, cubiertos, vasos, decoración ni calorías.
 `;
 
     const response = await this.ai.models.generateContent({
-      model: 'gemini-3.5-flash-lite',
+      model: this.model,
       contents: [
         {
           role: 'user',
           parts: [
             {
+              // normalizedImage devuelve siempre JPEG, por eso el mimeType es fijo
               inlineData: {
-                mimeType,
+                mimeType: 'image/jpeg',
                 data: imageBase64,
               },
             },
@@ -84,12 +99,7 @@ entre 0 y 1. No incluyas platos, cubiertos, vasos, decoración ni calorías.
                   estimatedGrams: { type: 'number' },
                   confidence: { type: 'number' },
                 },
-                required: [
-                  'name',
-                  'usdaQuery',
-                  'estimatedGrams',
-                  'confidence',
-                ],
+                required: ['name', 'usdaQuery', 'estimatedGrams', 'confidence'],
               },
             },
           },
@@ -104,6 +114,24 @@ entre 0 y 1. No incluyas platos, cubiertos, vasos, decoración ni calorías.
       throw new Error('Gemini returned an empty response');
     }
 
-    return JSON.parse(responseText);
+    const identification = JSON.parse(responseText) as FoodIdentification;
+
+    // Sanitizamos los valores que devuelve el modelo
+    const foods = (identification.foods ?? [])
+      .map((food: IdentifiedFood): IdentifiedFood => {
+        return {
+          name: food.name,
+          usdaQuery: food.usdaQuery,
+          estimatedGrams: clamp(food.estimatedGrams ?? 0, 0, MAX_GRAMS),
+          confidence: clamp(food.confidence ?? 0, 0, 1),
+        };
+      })
+      .filter(
+        (food) => food.estimatedGrams > 0 && food.usdaQuery.trim() !== '',
+      );
+
+    this.logger.log(`Identified ${foods.length} food item(s) in image`);
+
+    return { foods };
   }
 }

@@ -1,10 +1,13 @@
-import { FoodSearchResult } from 'src/nutrition/dto/nutritio.values.dto';
+import {
+  FoodSearchResult,
+  UsdaSearchFood,
+} from 'src/nutrition/dto/nutrition-values.dto';
 
-export function mapFood(food: any): FoodSearchResult {
+export function mapFood(food: UsdaSearchFood): FoodSearchResult {
   const getNutrient = (name: string): number | null => {
     return (
       food.foodNutrients?.find(
-        (nutrient: any) => nutrient.nutrientName === name,
+        (nutrient: { nutrientName: string }) => nutrient.nutrientName === name,
       )?.value ?? null
     );
   };

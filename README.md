@@ -1,98 +1,90 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Traking Food 🍽️
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API en **NestJS** que analiza fotos de comida y calcula su valor nutricional
+(calorías, proteína, carbohidratos y grasa) combinando **Gemini AI** (visión por
+computadora) con la **base de datos USDA FoodData Central**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Cómo funciona
 
-## Description
+1. Se sube una imagen del plato vía `POST /food-analysis`.
+2. La imagen se normaliza con `sharp` (rotación EXIF, máx. 1600 px, JPEG).
+3. **Gemini** identifica cada alimento, estima los gramos y genera una query en
+   inglés optimizada para la USDA.
+4. Se consulta la **USDA FDC API** (primero Foundation/SR Legacy, con fallback
+   de búsqueda amplia) para obtener los macros por 100 g.
+5. Se escala el valor nutricional a los gramos estimados y se devuelven los
+   totales del plato (con fallback Atwater 4-9-4 si la USDA no trae calorías).
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Endpoints
 
-## Project setup
+| Método | Ruta | Descripción |
+| ------ | ---- | ----------- |
+| `GET` | `/` | Health check |
+| `POST` | `/food-analysis` | Analiza imagen de comida. Body: `multipart/form-data` con campo `image` (JPEG/PNG/WebP, máx. 5 MB) |
+| `GET` | `/nutrition/search?foodName=...` | Busca datos nutricionales en la USDA por nombre (en inglés) |
+
+Ejemplos con curl:
 
 ```bash
-$ npm install
+# Health check
+curl http://localhost:3000/
+
+# Analizar foto
+curl -X POST http://localhost:3000/food-analysis -F "image=@plato.jpg"
+
+# Buscar alimento en USDA
+curl "http://localhost:3000/nutrition/search?foodName=chicken%20grilled"
 ```
 
-## Compile and run the project
+Respuesta de `/food-analysis`:
+
+```json
+{
+  "foods": [
+    {
+      "name": "Pechuga de pollo",
+      "usdaMatch": "Chicken, broilers, breast, meat, cooked",
+      "fdcId": 171505,
+      "grams": 150,
+      "calories": 247.5,
+      "protein": 46.5,
+      "carbohydrates": 0,
+      "fat": 5.4
+    }
+  ],
+  "totals": { "calories": 248, "protein": 47, "carbohydrates": 0, "fat": 5 }
+}
+```
+
+## Configuración
+
+Crea un archivo `.env` en la raíz del proyecto (la app valida al arrancar que
+existan las claves requeridas):
+
+```env
+GEMINI_API=tu_api_key_de_google
+FOOD_API=tu_api_key_de_usda
+GEMINI_MODEL=gemini-3.5-flash-lite   # opcional
+PORT=3000                            # opcional
+```
+
+- Gemini API key: https://aistudio.google.com/
+- USDA FDC API key: https://fdc.nal.usda.gov/api-key-signup.html
+
+## Seguridad y límites
+
+- Máximo **5 MB** por imagen y solo formatos `image/jpeg`, `image/png`, `image/webp`.
+- Rate limiting global: **10 requests por minuto por IP**.
+- Validación de variables de entorno al arranque.
+- Filtro global de excepciones con respuestas de error consistentes.
+
+## Proyecto
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install        # instalar dependencias
+npm run start:dev  # desarrollo (watch)
+npm run build      # compilar
+npm run start:prod # producción
+npm run test       # tests unitarios
+npm run lint       # eslint
 ```
-
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).

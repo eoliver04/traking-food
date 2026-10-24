@@ -1,20 +1,17 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { NutritionController } from './nutrition.controller';
-import { NutritionService } from './nutrition.service';
 
 describe('NutritionController', () => {
   let controller: NutritionController;
+  const getNutritionData = jest.fn().mockResolvedValue([]);
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [NutritionController],
-      providers: [NutritionService],
-    }).compile();
-
-    controller = module.get<NutritionController>(NutritionController);
+  beforeEach(() => {
+    jest.clearAllMocks();
+    controller = new NutritionController({ getNutritionData } as never);
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  it('delega el término de búsqueda en el servicio', async () => {
+    await controller.searchFood('chicken');
+
+    expect(getNutritionData).toHaveBeenCalledWith('chicken');
   });
 });
