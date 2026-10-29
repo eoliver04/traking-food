@@ -80,6 +80,10 @@ PORT=3000                            # opcional
 
 ## Proyecto
 
+Requiere **Node.js 24.9+** (ver `.nvmrc`). NestJS 12 se distribuye solo como ESM y
+Jest necesita `require(esm)` nativo, disponible a partir de esa versión; los
+scripts de test ya pasan el flag `--experimental-vm-modules` que Jest requiere.
+
 ```bash
 npm install        # instalar dependencias
 npm run start:dev  # desarrollo (watch)
