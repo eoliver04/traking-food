@@ -8,10 +8,6 @@ import { FoodRecognitionService } from 'src/food-recognition/food-recognition.se
 import { FoodIdentification } from 'src/food-recognition/dto/food-identification.dto';
 import { NutritionAnalysisResult } from 'src/nutrition/nutrition-calculation.service';
 
-// Fallback de variables de entorno para entornos sin .env (CI)
-process.env.GEMINI_API = process.env.GEMINI_API ?? 'e2e-dummy';
-process.env.FOOD_API = process.env.FOOD_API ?? 'e2e-dummy';
-
 /**
  * Tests funcionales e2e de POST /food-analysis.
  *

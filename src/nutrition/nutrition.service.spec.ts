@@ -4,7 +4,7 @@ import { NutritionService } from './nutrition.service';
 describe('NutritionService', () => {
   let service: NutritionService;
   let configService: ConfigService;
-  let fetchMock: jest.Mock<(...args: unknown[]) => Promise<unknown>>;
+  let fetchMock: jest.Mock<Promise<unknown>, unknown[]>;
 
   beforeEach(() => {
     configService = {
@@ -12,9 +12,7 @@ describe('NutritionService', () => {
     } as unknown as ConfigService;
     service = new NutritionService(configService);
 
-    fetchMock = jest.fn() as jest.Mock<
-      (...args: unknown[]) => Promise<unknown>
-    >;
+    fetchMock = jest.fn<Promise<unknown>, unknown[]>();
     (globalThis as unknown as { fetch: unknown }).fetch = fetchMock;
   });
 

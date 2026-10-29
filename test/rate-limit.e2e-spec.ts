@@ -4,10 +4,6 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 
-// Fallback de variables de entorno para entornos sin .env (CI)
-process.env.GEMINI_API = process.env.GEMINI_API ?? 'e2e-dummy';
-process.env.FOOD_API = process.env.FOOD_API ?? 'e2e-dummy';
-
 /**
  * Test funcional e2e del rate limiting global (@nestjs/throttler):
  * límite de 10 requests por minuto por IP configurado en AppModule.
