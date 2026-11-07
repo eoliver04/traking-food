@@ -19,6 +19,8 @@ export interface NutritionDetail {
   protein: number;
   carbohydrates: number;
   fat: number;
+  /** Confianza del reconocimiento (0-1) */
+  confidence: number;
 }
 
 export interface NutritionTotals {
@@ -50,6 +52,8 @@ export class NutritionCalculationService {
   }): NutritionAnalysisResult {
     const detailFood = foodData.foods.map((item): NutritionDetail => {
       const grams = clamp(item.estimatedGrams ?? 0, 0, MAX_GRAMS);
+      const confidence =
+        Math.round(clamp(item.confidence ?? 0, 0, 1) * 100) / 100;
       const selectedFood = item.nutrition?.[0]; // primer resultado de la USDA
 
       if (!selectedFood) {
@@ -62,6 +66,7 @@ export class NutritionCalculationService {
           protein: 0,
           carbohydrates: 0,
           fat: 0,
+          confidence,
         };
       }
 
@@ -87,6 +92,7 @@ export class NutritionCalculationService {
         protein: Math.round(protein * 10) / 10,
         carbohydrates: Math.round(carbohydrates * 10) / 10,
         fat: Math.round(fat * 10) / 10,
+        confidence,
       };
     });
 

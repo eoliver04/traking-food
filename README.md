@@ -17,11 +17,11 @@ computadora) con la **base de datos USDA FoodData Central**.
 
 ## Endpoints
 
-| Método | Ruta | Descripción |
-| ------ | ---- | ----------- |
-| `GET` | `/` | Health check |
-| `POST` | `/food-analysis` | Analiza imagen de comida. Body: `multipart/form-data` con campo `image` (JPEG/PNG/WebP, máx. 5 MB) |
-| `GET` | `/nutrition/search?foodName=...` | Busca datos nutricionales en la USDA por nombre (en inglés) |
+| Método | Ruta                             | Descripción                                                                                        |
+| ------ | -------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `GET`  | `/`                              | Health check                                                                                       |
+| `POST` | `/food-analysis`                 | Analiza imagen de comida. Body: `multipart/form-data` con campo `image` (JPEG/PNG/WebP, máx. 5 MB) |
+| `GET`  | `/nutrition/search?foodName=...` | Busca datos nutricionales en la USDA por nombre (en inglés)                                        |
 
 Ejemplos con curl:
 
@@ -49,7 +49,8 @@ Respuesta de `/food-analysis`:
       "calories": 247.5,
       "protein": 46.5,
       "carbohydrates": 0,
-      "fat": 5.4
+      "fat": 5.4,
+      "confidence": 0.9
     }
   ],
   "totals": { "calories": 248, "protein": 47, "carbohydrates": 0, "fat": 5 }
@@ -66,6 +67,8 @@ GEMINI_API=tu_api_key_de_google
 FOOD_API=tu_api_key_de_usda
 GEMINI_MODEL=gemini-3.5-flash-lite   # opcional
 PORT=3000                            # opcional
+CORS_ORIGINS=http://localhost:8082   # opcional: orígenes web permitidos, separados por comas.
+                                     # Sin definir → CORS desactivado (solo apps nativas)
 ```
 
 - Gemini API key: https://aistudio.google.com/

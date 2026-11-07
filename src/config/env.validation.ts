@@ -27,5 +27,31 @@ export function validateEnv(
     config.GEMINI_MODEL = 'gemini-3.5-flash-lite';
   }
 
+  // CORS_ORIGINS: lista separada por comas de orígenes web permitidos.
+  // Vacía o ausente → CORS desactivado (solo clientes nativos).
+  if (config.CORS_ORIGINS !== undefined && config.CORS_ORIGINS !== null) {
+    if (typeof config.CORS_ORIGINS !== 'string') {
+      throw new Error(
+        'Environment validation failed:\n  - CORS_ORIGINS must be a comma-separated string',
+      );
+    }
+    const invalid = parseCorsOrigins(config.CORS_ORIGINS).filter(
+      (origin) => !/^https?:\/\/[^/\s]+$/.test(origin),
+    );
+    if (invalid.length > 0) {
+      throw new Error(
+        `Environment validation failed:\n  - CORS_ORIGINS contains invalid origins: ${invalid.join(', ')}`,
+      );
+    }
+  }
+
   return config;
+}
+
+/** "http://a:8082, https://b.com" → ["http://a:8082", "https://b.com"] */
+export function parseCorsOrigins(value: string | undefined): string[] {
+  return (value ?? '')
+    .split(',')
+    .map((origin) => origin.trim().replace(/\/+$/, ''))
+    .filter((origin) => origin !== '');
 }
