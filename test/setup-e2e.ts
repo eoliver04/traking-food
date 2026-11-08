@@ -7,3 +7,7 @@
  */
 process.env.GEMINI_API = process.env.GEMINI_API ?? 'e2e-dummy';
 process.env.FOOD_API = process.env.FOOD_API ?? 'e2e-dummy';
+process.env.SUPABASE_URL =
+  process.env.SUPABASE_URL ?? 'https://e2e.supabase.co';
+process.env.SUPABASE_SERVICE_ROLE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ?? 'e2e-dummy-service-role';

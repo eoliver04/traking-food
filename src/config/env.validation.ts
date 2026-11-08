@@ -1,4 +1,9 @@
-const REQUIRED_KEYS = ['GEMINI_API', 'FOOD_API', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY'] as const;
+const REQUIRED_KEYS = [
+  'GEMINI_API',
+  'FOOD_API',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+] as const;
 
 /**
  * Valida las variables de entorno al arrancar la app.

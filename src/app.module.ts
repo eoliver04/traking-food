@@ -9,6 +9,7 @@ import { validateEnv } from 'src/config/env.validation';
 import { FoodRecognitionModule } from './food-recognition/food-recognition.module';
 import { NutritionModule } from './nutrition/nutrition.module';
 import { FoodAnalysisModule } from './food-analysis/food-analysis.module';
+import { SupabaseModule } from './supabase/supabase.module';
 
 @Module({
   imports: [
@@ -16,6 +17,8 @@ import { FoodAnalysisModule } from './food-analysis/food-analysis.module';
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
     // Rate limiting global: máx. 10 requests por minuto por IP
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 10 }]),
+    // Cliente de Supabase (global): lo usan los repositorios de cada dominio
+    SupabaseModule,
     FoodRecognitionModule,
     NutritionModule,
     FoodAnalysisModule,

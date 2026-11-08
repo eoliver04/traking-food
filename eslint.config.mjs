@@ -6,7 +6,8 @@ import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
   {
-    ignores: ['eslint.config.mjs'],
+    // database.types.ts lo genera la CLI de Supabase: no se lintea
+    ignores: ['eslint.config.mjs', 'src/supabase/database.types.ts'],
   },
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,

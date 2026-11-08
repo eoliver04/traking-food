@@ -1,15 +1,20 @@
 import { parseCorsOrigins, validateEnv } from './env.validation';
 
+const supabase = {
+  SUPABASE_URL: 'https://test.supabase.co',
+  SUPABASE_SERVICE_ROLE_KEY: 'service-role-key',
+};
+
 describe('validateEnv', () => {
   it('falla cuando falta GEMINI_API', () => {
-    expect(() => validateEnv({ GEMINI_API: '', FOOD_API: 'usda-key' })).toThrow(
-      /GEMINI_API/,
-    );
+    expect(() =>
+      validateEnv({ ...supabase, GEMINI_API: '', FOOD_API: 'usda-key' }),
+    ).toThrow(/GEMINI_API/);
   });
 
   it('falla cuando falta FOOD_API', () => {
     expect(() =>
-      validateEnv({ GEMINI_API: 'gemini-key', FOOD_API: '   ' }),
+      validateEnv({ ...supabase, GEMINI_API: 'gemini-key', FOOD_API: '   ' }),
     ).toThrow(/FOOD_API/);
   });
 
@@ -19,6 +24,7 @@ describe('validateEnv', () => {
 
   it('con valores válidos aplica el default de GEMINI_MODEL', () => {
     const config = validateEnv({
+      ...supabase,
       GEMINI_API: 'gemini-key',
       FOOD_API: 'usda-key',
     });
@@ -28,6 +34,7 @@ describe('validateEnv', () => {
 
   it('respeta GEMINI_MODEL si ya viene configurado', () => {
     const config = validateEnv({
+      ...supabase,
       GEMINI_API: 'gemini-key',
       FOOD_API: 'usda-key',
       GEMINI_MODEL: 'gemini-2.5-flash-lite',
@@ -38,7 +45,7 @@ describe('validateEnv', () => {
 });
 
 describe('CORS_ORIGINS', () => {
-  const base = { GEMINI_API: 'g', FOOD_API: 'f' };
+  const base = { ...supabase, GEMINI_API: 'g', FOOD_API: 'f' };
 
   it('acepta una lista separada por comas y la normaliza', () => {
     expect(
