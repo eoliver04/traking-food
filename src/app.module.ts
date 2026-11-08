@@ -26,7 +26,6 @@ import { SupabaseModule } from './supabase/supabase.module';
   controllers: [AppController],
   providers: [
     AppService,
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })

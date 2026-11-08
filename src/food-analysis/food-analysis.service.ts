@@ -17,7 +17,7 @@ export class FoodAnalysisService {
     private readonly nutritionCalculationService: NutritionCalculationService,
   ) {}
 
-  async analyzeFood(imageBuffer: Buffer): Promise<NutritionAnalysisResult> {
+  async analyzeFood(userId: string,imageBuffer: Buffer): Promise<NutritionAnalysisResult> {
     // 1. Gemini identifica los alimentos y genera el término en inglés
     const identification =
       await this.foodRecognitionService.identifyFoods(imageBuffer);

@@ -11,6 +11,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { imageUploadOptions } from 'src/config/upload-options';
 import { NutritionAnalysisResult } from 'src/nutrition/nutrition-calculation.service';
 import { FoodAnalysisService } from './food-analysis.service';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import type { AuthUser } from '@supabase/supabase-js/dist/index.mjs';
 
 @Controller('food-analysis')
 export class FoodAnalysisController {
@@ -23,12 +25,13 @@ export class FoodAnalysisController {
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('image', imageUploadOptions))
   async analyzeFood(
+    @CurrentUser() user: AuthUser,
     @UploadedFile() file: Express.Multer.File | undefined,
   ): Promise<NutritionAnalysisResult> {
     if (!file) {
       throw new BadRequestException('Image is required');
     }
 
-    return this.foodAnalysisService.analyzeFood(file.buffer);
+    return this.foodAnalysisService.analyzeFood(user.id, file.buffer);
   }
 }
