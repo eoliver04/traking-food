@@ -12,7 +12,7 @@ import { imageUploadOptions } from 'src/config/upload-options';
 import { NutritionAnalysisResult } from 'src/nutrition/nutrition-calculation.service';
 import { FoodAnalysisService } from './food-analysis.service';
 import { CurrentUser } from 'src/auth/current-user.decorator';
-import type { AuthUser } from '@supabase/supabase-js/dist/index.mjs';
+import type { AuthUser } from 'src/auth/auth.types';
 
 @Controller('food-analysis')
 export class FoodAnalysisController {

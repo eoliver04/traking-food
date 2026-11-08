@@ -43,7 +43,7 @@ describe('FoodAnalysisService', () => {
       } as FoodSearchResult,
     ]);
 
-    await service.analyzeFood(Buffer.from('img'));
+    await service.analyzeFood('user-1', Buffer.from('img'));
 
     expect(recognitionService.identifyFoods).toHaveBeenCalled();
     expect(nutritionService.getNutritionData).toHaveBeenCalledWith(
@@ -73,7 +73,7 @@ describe('FoodAnalysisService', () => {
   it('no consulta USDA si Gemini no identifica nada', async () => {
     recognitionService.identifyFoods.mockResolvedValue({ foods: [] });
 
-    const result = await service.analyzeFood(Buffer.from('img'));
+    const result = await service.analyzeFood('user-1', Buffer.from('img'));
 
     expect(nutritionService.getNutritionData).not.toHaveBeenCalled();
     expect(result.totals.calories).toBe(0);

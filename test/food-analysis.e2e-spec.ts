@@ -4,6 +4,8 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import sharp from 'sharp';
 import { AppModule } from '../src/app.module';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FakeJwtAuthGuard } from './fake-jwt-auth.guard';
 import { FoodRecognitionService } from 'src/food-recognition/food-recognition.service';
 import { FoodIdentification } from 'src/food-recognition/dto/food-identification.dto';
 import { NutritionAnalysisResult } from 'src/nutrition/nutrition-calculation.service';
@@ -15,6 +17,7 @@ import { NutritionAnalysisResult } from 'src/nutrition/nutrition-calculation.ser
  * cálculo nutricional reales) y mockean SOLO las fronteras externas:
  * - Gemini (FoodRecognitionService)
  * - USDA (fetch global)
+ * - Auth (JwtAuthGuard → FakeJwtAuthGuard, ver auth.e2e-spec.ts)
  */
 describe('FoodAnalysisController (e2e)', () => {
   let app: INestApplication<App>;
@@ -104,6 +107,8 @@ describe('FoodAnalysisController (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
+      .overrideProvider(JwtAuthGuard)
+      .useClass(FakeJwtAuthGuard)
       .overrideProvider(FoodRecognitionService)
       .useValue({ identifyFoods: identifyFoodsMock })
       .compile();

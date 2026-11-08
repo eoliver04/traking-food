@@ -3,10 +3,13 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { FakeJwtAuthGuard } from './fake-jwt-auth.guard';
 
 /**
  * Tests funcionales e2e de GET /nutrition/search.
- * Arranca la app completa y mockea SOLO la USDA (fetch global).
+ * Arranca la app completa y mockea SOLO la USDA (fetch global) y el guard
+ * de auth (ver auth.e2e-spec.ts).
  */
 describe('NutritionController (e2e)', () => {
   let app: INestApplication<App>;
@@ -58,7 +61,10 @@ describe('NutritionController (e2e)', () => {
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(JwtAuthGuard)
+      .useClass(FakeJwtAuthGuard)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
